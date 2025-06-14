@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, curly_braces_in_flow_control_structures
 
 import 'package:flutter/material.dart';
 import 'home_page.dart';
@@ -50,8 +50,10 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) return 'Por favor ingresa tu contraseña';
-    if (value.length < 8) return 'La contraseña debe tener al menos 8 caracteres';
+    if (value == null || value.isEmpty)
+      return 'Por favor ingresa tu contraseña';
+    if (value.length < 8)
+      return 'La contraseña debe tener al menos 8 caracteres';
     return null;
   }
 
@@ -71,7 +73,8 @@ class _LoginPageState extends State<LoginPage> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
               elevation: 10,
               color: Colors.white,
               child: Padding(
@@ -98,12 +101,13 @@ class _LoginPageState extends State<LoginPage> {
                         keyboardType: TextInputType.emailAddress,
                         validator: _validateEmail,
                         decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.email, color: Colors.blue.shade700),
+                          prefixIcon:
+                              Icon(Icons.email, color: Colors.blue.shade700),
                           labelText: 'Correo electrónico',
                           border: const OutlineInputBorder(),
                           focusedBorder: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Colors.blue.shade700, width: 2),
+                            borderSide: BorderSide(
+                                color: Colors.blue.shade700, width: 2),
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
@@ -114,12 +118,13 @@ class _LoginPageState extends State<LoginPage> {
                         obscureText: true,
                         validator: _validatePassword,
                         decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.lock, color: Colors.blue.shade700),
+                          prefixIcon:
+                              Icon(Icons.lock, color: Colors.blue.shade700),
                           labelText: 'Contraseña',
                           border: const OutlineInputBorder(),
                           focusedBorder: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Colors.blue.shade700, width: 2),
+                            borderSide: BorderSide(
+                                color: Colors.blue.shade700, width: 2),
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
@@ -142,7 +147,10 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                                 child: const Text(
                                   'Ingresar',
-                                  style: TextStyle(fontSize: 18),
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),
@@ -150,7 +158,8 @@ class _LoginPageState extends State<LoginPage> {
                       TextButton(
                         onPressed: () => Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (_) => const RegisterPage()),
+                          MaterialPageRoute(
+                              builder: (_) => const RegisterPage()),
                         ),
                         child: Text(
                           '¿No tienes cuenta? Regístrate',

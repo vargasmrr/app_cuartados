@@ -47,7 +47,8 @@ class _UpdateUserPageState extends State<UpdateUserPage> {
         token: widget.token,
         name: _nameController.text,
         email: _emailController.text,
-        password: _passwordController.text.isEmpty ? null : _passwordController.text,
+        password:
+            _passwordController.text.isEmpty ? null : _passwordController.text,
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -84,8 +85,9 @@ class _UpdateUserPageState extends State<UpdateUserPage> {
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.person),
                       ),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? 'Ingrese un nombre' : null,
+                      validator: (value) => value == null || value.isEmpty
+                          ? 'Ingrese un nombre'
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -96,8 +98,9 @@ class _UpdateUserPageState extends State<UpdateUserPage> {
                         prefixIcon: Icon(Icons.email),
                       ),
                       keyboardType: TextInputType.emailAddress,
-                      validator: (value) =>
-                          value == null || value.isEmpty ? 'Ingrese un correo' : null,
+                      validator: (value) => value == null || value.isEmpty
+                          ? 'Ingrese un correo'
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -114,8 +117,15 @@ class _UpdateUserPageState extends State<UpdateUserPage> {
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: updateUser,
-                        icon: const Icon(Icons.save),
-                        label: const Text('Guardar Cambios'),
+                        icon: const Icon(Icons.save,
+                            color: Colors
+                                .white), // También puedes igualar el icono
+                        label: const Text(
+                          'Guardar Cambios',
+                          style: TextStyle(
+                              color: Colors
+                                  .white), // Aquí defines el color del texto
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue.shade700,
                           padding: const EdgeInsets.symmetric(vertical: 16),
