@@ -1,27 +1,22 @@
+// materias_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-class MateriasService {
-  static const String _baseUrl = 'https://app-iv-ii-main-td0mcu.laravel.cloud/api';
+Future<List<dynamic>> materiasService(String token) async {
+  final url = Uri.parse('https://app-iv-ii-main-td0mcu.laravel.cloud/api/materias');
+  final response = await http.post(
+    url,
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+  );
 
-  /// Obtiene la lista de materias mediante POST, usando token para autorización
-  static Future<List<dynamic>> getMaterias({required String token}) async {
-    final url = Uri.parse('$_baseUrl/materias');
+  final data = jsonDecode(response.body);
 
-    final response = await http.post(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      // Asumiendo que el array de materias viene en la clave 'materias'
-      return data['materias'] ?? [];
-    } else {
-      throw Exception('Error al cargar las materias: ${response.body}');
-    }
+  if (response.statusCode == 200) {
+    return data['materias'];
+  } else {
+    throw Exception(data['message'] ?? 'Error al cargar materias');
   }
 }

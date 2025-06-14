@@ -1,12 +1,11 @@
 // ignore_for_file: use_build_context_synchronously, deprecated_member_use
-import 'dart:convert';
+import 'package:app_cuartados/controllers/logout_service.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'login_page.dart';
 import 'materia_details_page.dart';
 import 'package:app_cuartados/pages/edit_profile_page.dart';
+import 'package:app_cuartados/controllers/materia_estado_service.dart';
+import 'package:app_cuartados/controllers/materias_service.dart';
 
 class HomePage extends StatefulWidget {
   final String token;
@@ -21,37 +20,25 @@ class _HomePageState extends State<HomePage> {
   List<dynamic> materiasFiltradas = [];
   bool isLoading = true;
   String query = '';
+  String estadoSeleccionado = 'todos'; // Para controlar el filtro activo
 
   @override
   void initState() {
     super.initState();
-    fetchMaterias();
+    fetchMaterias(); // Traer todas las materias al inicio
   }
 
+  // Función para obtener todas las materias (sin filtro)
   Future<void> fetchMaterias() async {
-    final url =
-        Uri.parse('https://app-iv-ii-main-td0mcu.laravel.cloud/api/materias');
-
+    setState(() => isLoading = true);
     try {
-      final response = await http.post(
-        url,
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 200) {
-        setState(() {
-          materias = data['materias'];
-          materiasFiltradas = materias;
-          isLoading = false;
-        });
-      } else {
-        throw Exception(data['message'] ?? 'Error al cargar materias');
-      }
+      final todasMaterias = await materiasService(widget.token);
+      setState(() {
+        materias = todasMaterias;
+        materiasFiltradas = todasMaterias;
+        isLoading = false;
+        estadoSeleccionado = 'todos';
+      });
     } catch (e) {
       setState(() => isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -60,6 +47,27 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Función para obtener materias filtradas por estado
+  Future<void> fetchMateriasPorEstado(String estado) async {
+    setState(() => isLoading = true);
+
+    try {
+      final nuevasMaterias = await materiaEstadoService(estado, widget.token);
+      setState(() {
+        materias = nuevasMaterias;
+        materiasFiltradas = nuevasMaterias;
+        isLoading = false;
+        estadoSeleccionado = estado;
+      });
+    } catch (e) {
+      setState(() => isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
+  }
+
+  // Filtra las materias localmente según el texto de búsqueda
   void filtrarMaterias(String text) {
     setState(() {
       query = text;
@@ -71,25 +79,54 @@ class _HomePageState extends State<HomePage> {
       }).toList();
     });
   }
-
+//FUNCION PARA CERRAR SESIÓN
   Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    final url =
-        Uri.parse('https://app-iv-ii-main-td0mcu.laravel.cloud/api/logout');
+    try {
+      await logoutService(widget.token);
 
-    await http.post(
-      url,
-      headers: {
-        'Authorization': 'Bearer ${widget.token}',
-        'Content-Type': 'application/json',
-      },
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cerrar sesión: ${e.toString()}')),
+      );
+    }
+  }
+
+  // Barra con botones para filtrar por estado
+  Widget _buildEstadoBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildEstadoButton('todos', 'Todas'),
+          _buildEstadoButton('pendiente', 'Pendientes'),
+          _buildEstadoButton('aprobada', 'Aprobadas'),
+          _buildEstadoButton('matriculada', 'Matriculadas'),
+        ],
+      ),
     );
+  }
 
-    await prefs.remove('token');
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginPage()),
+  Widget _buildEstadoButton(String estado, String texto) {
+    final isSelected = estadoSeleccionado == estado;
+    return ElevatedButton(
+      onPressed: () {
+        if (estado == 'todos') {
+          fetchMaterias();
+        } else {
+          fetchMateriasPorEstado(estado);
+        }
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor:
+            isSelected ? Colors.blue.shade700 : Colors.grey.shade400,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      child: Text(texto, style: const TextStyle(color: Colors.white)),
     );
   }
 
@@ -159,6 +196,10 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                   ),
+
+                  // Barra de filtro por estado
+                  _buildEstadoBar(),
+
                   const SizedBox(height: 12),
 
                   Padding(
@@ -176,11 +217,13 @@ class _HomePageState extends State<HomePage> {
                       onChanged: filtrarMaterias,
                     ),
                   ),
+
                   const SizedBox(height: 10),
 
                   Expanded(
                     child: materiasFiltradas.isEmpty
-                        ? const Center(child: Text('No hay materias encontradas'))
+                        ? const Center(
+                            child: Text('No hay materias encontradas'))
                         : ListView.builder(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 8),
@@ -192,8 +235,7 @@ class _HomePageState extends State<HomePage> {
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 elevation: 4,
-                                margin:
-                                    const EdgeInsets.symmetric(vertical: 8),
+                                margin: const EdgeInsets.symmetric(vertical: 8),
                                 child: ListTile(
                                   contentPadding: const EdgeInsets.symmetric(
                                       horizontal: 16, vertical: 12),
