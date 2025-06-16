@@ -17,6 +17,9 @@ class _UpdateUserPageState extends State<UpdateUserPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  late String originalName;
+  late String originalEmail;
+
   bool isLoading = true;
 
   @override
@@ -30,9 +33,11 @@ class _UpdateUserPageState extends State<UpdateUserPage> {
       final user = await UserService.getUserInfo(token: widget.token);
       _nameController.text = user['name'] ?? '';
       _emailController.text = user['email'] ?? '';
+      originalName = user['name'] ?? '';
+      originalEmail = user['email'] ?? '';
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al cargar el usuario')),
+        const SnackBar(content: Text('Error al cargar el usuario')),
       );
     } finally {
       setState(() => isLoading = false);
@@ -42,18 +47,40 @@ class _UpdateUserPageState extends State<UpdateUserPage> {
   Future<void> updateUser() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final newName = _nameController.text.trim();
+    final newEmail = _emailController.text.trim();
+    final newPassword = _passwordController.text;
+
+    final noNameChange = newName == originalName;
+    final noEmailChange = newEmail == originalEmail;
+    final noPasswordChange = newPassword.isEmpty;
+
+    if (noNameChange && noEmailChange && noPasswordChange) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se detectaron cambios para actualizar')),
+      );
+      return;
+    }
+
     try {
       await UserService.updateUser(
         token: widget.token,
-        name: _nameController.text,
-        email: _emailController.text,
-        password:
-            _passwordController.text.isEmpty ? null : _passwordController.text,
+        name: newName,
+        email: newEmail,
+        password: newPassword.isEmpty ? null : newPassword,
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Usuario actualizado con éxito')),
       );
+
+      originalName = newName;
+      originalEmail = newEmail;
+      _passwordController.clear();
+
+      await Future.delayed(const Duration(milliseconds: 800));
+      Navigator.pop(context);
+
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error actualizando: ${e.toString()}')),
@@ -85,9 +112,15 @@ class _UpdateUserPageState extends State<UpdateUserPage> {
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.person),
                       ),
-                      validator: (value) => value == null || value.isEmpty
-                          ? 'Ingrese un nombre'
-                          : null,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Ingrese un nombre';
+                        }
+                        if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
+                          return 'El nombre solo puede contener letras';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -98,9 +131,16 @@ class _UpdateUserPageState extends State<UpdateUserPage> {
                         prefixIcon: Icon(Icons.email),
                       ),
                       keyboardType: TextInputType.emailAddress,
-                      validator: (value) => value == null || value.isEmpty
-                          ? 'Ingrese un correo'
-                          : null,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Ingrese un correo';
+                        }
+                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w]{2,4}$')
+                            .hasMatch(value)) {
+                          return 'Correo no válido';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -111,20 +151,24 @@ class _UpdateUserPageState extends State<UpdateUserPage> {
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.lock),
                       ),
+                      validator: (value) {
+                        if (value != null &&
+                            value.isNotEmpty &&
+                            value.length < 8) {
+                          return 'La contraseña debe tener al menos 8 caracteres';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: updateUser,
-                        icon: const Icon(Icons.save,
-                            color: Colors
-                                .white), // También puedes igualar el icono
+                        icon: const Icon(Icons.save, color: Colors.white),
                         label: const Text(
                           'Guardar Cambios',
-                          style: TextStyle(
-                              color: Colors
-                                  .white), // Aquí defines el color del texto
+                          style: TextStyle(color: Colors.white),
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue.shade700,

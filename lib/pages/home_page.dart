@@ -73,9 +73,9 @@ class _HomePageState extends State<HomePage> {
       query = text;
       materiasFiltradas = materias.where((materia) {
         final nombre = materia['nombre']?.toLowerCase() ?? '';
-        final docente = materia['docente']?.toLowerCase() ?? '';
+        final codigo = materia['codigo']?.toLowerCase() ?? '';
         return nombre.contains(text.toLowerCase()) ||
-            docente.contains(text.toLowerCase());
+            codigo.contains(text.toLowerCase());
       }).toList();
     });
   }
@@ -135,6 +135,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text('Mis Materias'),
         backgroundColor: Colors.blue.shade700,
         actions: [
@@ -207,7 +208,7 @@ class _HomePageState extends State<HomePage> {
                     child: TextField(
                       decoration: InputDecoration(
                         prefixIcon: const Icon(Icons.search),
-                        hintText: 'Buscar por nombre o docente...',
+                        hintText: 'Buscar por nombre o codigo...',
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
