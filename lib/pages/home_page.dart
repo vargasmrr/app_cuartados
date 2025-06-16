@@ -79,6 +79,7 @@ class _HomePageState extends State<HomePage> {
       }).toList();
     });
   }
+
 //FUNCION PARA CERRAR SESIÓN
   Future<void> logout() async {
     try {
@@ -136,11 +137,19 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text('Mis Materias'),
+        centerTitle: true,
+        title: const Text(
+          'Mis Materias',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
         backgroundColor: Colors.blue.shade700,
         actions: [
           IconButton(
-            icon: const Icon(Icons.person_outline),
+            icon: Icon(Icons.person_outline, color: Colors.white), // Cambiado
             tooltip: 'Editar perfil',
             onPressed: () {
               Navigator.push(
@@ -152,7 +161,7 @@ class _HomePageState extends State<HomePage> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: Icon(Icons.logout, color: Colors.white), // Cambiado
             tooltip: 'Cerrar sesión',
             onPressed: logout,
           ),
