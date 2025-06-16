@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'register_page.dart';
 import 'package:app_cuartados/controllers/login_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -18,6 +19,11 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
   bool _isLoading = false;
 
+  Future<void> guardarToken(String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('token', token);
+  }
+
   void _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -31,6 +37,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = false);
 
     if (result['success']) {
+      await guardarToken(result['token']);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => HomePage(token: result['token'])),

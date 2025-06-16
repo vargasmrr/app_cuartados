@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously, deprecated_member_use
 import 'package:app_cuartados/controllers/logout_service.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'login_page.dart';
 import 'materia_details_page.dart';
 import 'package:app_cuartados/pages/edit_profile_page.dart';
@@ -82,19 +83,25 @@ class _HomePageState extends State<HomePage> {
 
 //FUNCION PARA CERRAR SESIÓN
   Future<void> logout() async {
-    try {
-      await logoutService(widget.token);
+  try {
+    await logoutService(widget.token);
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginPage()),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al cerrar sesión: ${e.toString()}')),
-      );
-    }
+    // Borrar el token guardado
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
+
+    // Redirigir al Login
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error al cerrar sesión: ${e.toString()}')),
+    );
   }
+}
+
 
   // Barra con botones para filtrar por estado
   Widget _buildEstadoBar() {
