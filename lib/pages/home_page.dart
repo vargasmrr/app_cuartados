@@ -1,16 +1,19 @@
 // ignore_for_file: use_build_context_synchronously, deprecated_member_use
 import 'package:app_cuartados/controllers/logout_service.dart';
+import 'package:app_cuartados/pages/materia_details_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_page.dart';
-import 'materia_details_page.dart';
 import 'package:app_cuartados/pages/edit_profile_page.dart';
 import 'package:app_cuartados/controllers/materia_estado_service.dart';
 import 'package:app_cuartados/controllers/materias_service.dart';
+import 'package:app_cuartados/pages/materia_details_page.dart';
 
 class HomePage extends StatefulWidget {
   final String token;
   const HomePage({super.key, required this.token});
+  
+
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -309,12 +312,13 @@ class _HomePageState extends State<HomePage> {
                                   trailing: Icon(Icons.arrow_forward_ios,
                                       size: 16, color: Colors.blue.shade700),
                                   onTap: () async {
-                                    Navigator.pop(context);
                                     await Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) =>
-                                            UpdateUserPage(token: widget.token),
+                                        builder: (_) => MateriaDetailPage(
+                                          token: widget.token,
+                                         id: materia['id'].toString(),
+                                        ),
                                       ),
                                     );
                                   },
