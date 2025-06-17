@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:app_cuartados/controllers/update_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UpdateUserPage extends StatefulWidget {
   final String token;
@@ -44,56 +45,64 @@ class _UpdateUserPageState extends State<UpdateUserPage> {
     }
   }
 
-  Future<void> updateUser() async {
-    if (!_formKey.currentState!.validate()) return;
+ Future<void> updateUser() async {
+  if (!_formKey.currentState!.validate()) return;
 
-    final newName = _nameController.text.trim();
-    final newEmail = _emailController.text.trim();
-    final newPassword = _passwordController.text;
+  final newName = _nameController.text.trim();
+  final newEmail = _emailController.text.trim();
+  final newPassword = _passwordController.text;
 
-    final noNameChange = newName == originalName;
-    final noEmailChange = newEmail == originalEmail;
-    final noPasswordChange = newPassword.isEmpty;
+  final noNameChange = newName == originalName;
+  final noEmailChange = newEmail == originalEmail;
+  final noPasswordChange = newPassword.isEmpty;
 
-    if (noNameChange && noEmailChange && noPasswordChange) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se detectaron cambios para actualizar')),
-      );
-      return;
-    }
-
-    try {
-      await UserService.updateUser(
-        token: widget.token,
-        name: newName,
-        email: newEmail,
-        password: newPassword.isEmpty ? null : newPassword,
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Usuario actualizado con éxito')),
-      );
-
-      originalName = newName;
-      originalEmail = newEmail;
-      _passwordController.clear();
-
-      await Future.delayed(const Duration(milliseconds: 800));
-      Navigator.pop(context);
-
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error actualizando: ${e.toString()}')),
-      );
-    }
+  if (noNameChange && noEmailChange && noPasswordChange) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('No se detectaron cambios para actualizar')),
+    );
+    return;
   }
+
+  try {
+    await UserService.updateUser(
+      token: widget.token,
+      name: newName,
+      email: newEmail,
+      password: newPassword.isEmpty ? null : newPassword,
+    );
+
+    // ✅ Aquí se guarda el nuevo nombre en SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('name', newName);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Usuario actualizado con éxito')),
+    );
+
+    originalName = newName;
+    originalEmail = newEmail;
+    _passwordController.clear();
+
+    await Future.delayed(const Duration(milliseconds: 800));
+    Navigator.pop(context);
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error actualizando: ${e.toString()}')),
+    );
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Editar Perfil'),
-        backgroundColor: Colors.blue.shade700,
+         backgroundColor: Colors.blue.shade700,
+         centerTitle: true,
+        title: const Text('Editar Perfil',
+         style: TextStyle(color: Colors.white),
+        ),
+         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())

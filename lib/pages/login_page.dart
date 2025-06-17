@@ -23,31 +23,35 @@ class _LoginPageState extends State<LoginPage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('token', token);
   }
+void _handleLogin() async {
+  if (!_formKey.currentState!.validate()) return;
 
-  void _handleLogin() async {
-    if (!_formKey.currentState!.validate()) return;
+  setState(() => _isLoading = true);
 
-    setState(() => _isLoading = true);
+  final result = await LoginService.loginUser(
+    emailController.text.trim(),
+    passwordController.text,
+  );
 
-    final result = await LoginService.loginUser(
-      emailController.text.trim(),
-      passwordController.text,
+  setState(() => _isLoading = false);
+
+  if (result['success']) {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('token', result['token']);
+    await prefs.setString('name', result['name'] ?? 'Estudiante');
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => HomePage(token: result['token'])),
     );
-
-    setState(() => _isLoading = false);
-
-    if (result['success']) {
-      await guardarToken(result['token']);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => HomePage(token: result['token'])),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'] ?? 'Error al iniciar sesión')),
-      );
-    }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(result['message'] ?? 'Error al iniciar sesión')),
+    );
   }
+}
+
+
 
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) return 'Por favor ingresa tu correo';

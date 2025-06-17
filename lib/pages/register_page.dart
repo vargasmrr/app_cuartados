@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'login_page.dart';
 import 'home_page.dart';
 import 'package:app_cuartados/controllers/register_service.dart';
@@ -19,30 +20,37 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController passwordController = TextEditingController();
   bool _isLoading = false;
 
-  void _handleRegister() async {
-    if (!_formKey.currentState!.validate()) return;
+void _handleRegister() async {
+  if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
+  setState(() => _isLoading = true);
 
-    final result = await register(
-      nameController.text.trim(),
-      emailController.text.trim(),
-      passwordController.text,
+  final result = await register(
+    nameController.text.trim(),
+    emailController.text.trim(),
+    passwordController.text,
+  );
+
+  setState(() => _isLoading = false);
+
+  if (result['success']) {
+    // Guardar el nombre y el token en SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('name', nameController.text.trim());
+    await prefs.setString('token', result['token']);
+
+    // Navegar al HomePage
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => HomePage(token: result['token'])),
     );
-
-    setState(() => _isLoading = false);
-
-    if (result['success']) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => HomePage(token: result['token'])),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'] ?? 'Error al registrarse')),
-      );
-    }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(result['message'] ?? 'Error al registrarse')),
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

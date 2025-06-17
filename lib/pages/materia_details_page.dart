@@ -60,8 +60,12 @@ class _MateriaDetailPageState extends State<MateriaDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detalle de Materia'),
         backgroundColor: Colors.blue.shade700,
+        centerTitle: true,
+        title: const Text('Detalle de Materia',
+        style: TextStyle(color: Colors.white),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -70,7 +74,8 @@ class _MateriaDetailPageState extends State<MateriaDetailPage> {
               : Padding(
                   padding: const EdgeInsets.all(16),
                   child: Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
                     elevation: 8,
                     child: Padding(
                       padding: const EdgeInsets.all(20),
@@ -90,11 +95,16 @@ class _MateriaDetailPageState extends State<MateriaDetailPage> {
                               ),
                             ),
                             const Divider(height: 30, thickness: 2),
-                            _infoRow(Icons.book_outlined, 'Código', detalle!['codigo']),
-                            _infoRow(Icons.person_outline, 'Docente', detalle!['docente']),
-                            _infoRow(Icons.star, 'Créditos', detalle!['creditos']?.toString()),
-                            _infoRow(Icons.check_circle_outline, 'Estado', detalle!['estado']),
-                            _infoRow(Icons.rule_folder, 'Requisito', detalle!['requisito']?.toString()),
+                            _infoRow(Icons.book_outlined, 'Código',
+                                detalle!['codigo']),
+                            _infoRow(Icons.person_outline, 'Docente',
+                                detalle!['docente']),
+                            _infoRow(Icons.star, 'Créditos',
+                                detalle!['creditos']?.toString()),
+                            _infoRow(Icons.check_circle_outline, 'Estado',
+                                detalle!['estado']),
+                            _infoRow(Icons.rule_folder, 'Requisito',
+                                detalle!['requisito']?.toString()),
                             const SizedBox(height: 12),
                             if (detalle!.containsKey('descripcion') &&
                                 detalle!['descripcion'] != null &&
@@ -113,7 +123,8 @@ class _MateriaDetailPageState extends State<MateriaDetailPage> {
                                   const SizedBox(height: 8),
                                   Text(
                                     detalle!['descripcion'],
-                                    style: const TextStyle(fontSize: 16, height: 1.4),
+                                    style: const TextStyle(
+                                        fontSize: 16, height: 1.4),
                                   ),
                                 ],
                               ),

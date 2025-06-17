@@ -25,7 +25,7 @@ class LoginService {
         return {
           'success': true,
           'token': data['accessToken'],
-          'user': data['user'],
+          'name': data['user']['name'],
         };
       } else {
         return {

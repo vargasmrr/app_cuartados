@@ -21,15 +21,29 @@ class _HomePageState extends State<HomePage> {
   List<dynamic> materiasFiltradas = [];
   bool isLoading = true;
   String query = '';
-  String estadoSeleccionado = 'todos'; // Para controlar el filtro activo
+  String estadoSeleccionado = 'todos';
+  String nombreUsuario = '';
 
   @override
   void initState() {
     super.initState();
-    fetchMaterias(); // Traer todas las materias al inicio
+    fetchMaterias();
+    obtenerNombreUsuario();
   }
 
-  // Función para obtener todas las materias (sin filtro)
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    obtenerNombreUsuario(); // Aquí actualiza el nombre del usuario
+  }
+
+  Future<void> obtenerNombreUsuario() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      nombreUsuario = prefs.getString('name') ?? 'Estudiante';
+    });
+  }
+
   Future<void> fetchMaterias() async {
     setState(() => isLoading = true);
     try {
@@ -48,10 +62,8 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Función para obtener materias filtradas por estado
   Future<void> fetchMateriasPorEstado(String estado) async {
     setState(() => isLoading = true);
-
     try {
       final nuevasMaterias = await materiaEstadoService(estado, widget.token);
       setState(() {
@@ -68,7 +80,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Filtra las materias localmente según el texto de búsqueda
   void filtrarMaterias(String text) {
     setState(() {
       query = text;
@@ -81,29 +92,23 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-//FUNCION PARA CERRAR SESIÓN
   Future<void> logout() async {
-  try {
-    await logoutService(widget.token);
-
-    // Borrar el token guardado
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('token');
-
-    // Redirigir al Login
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginPage()),
-    );
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error al cerrar sesión: ${e.toString()}')),
-    );
+    try {
+      await logoutService(widget.token);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('token');
+      await prefs.remove('nombre');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cerrar sesión: ${e.toString()}')),
+      );
+    }
   }
-}
 
-
-  // Barra con botones para filtrar por estado
   Widget _buildEstadoBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -142,89 +147,120 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        centerTitle: true,
-        title: const Text(
-          'Mis Materias',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue.shade700,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const CircleAvatar(
+                    radius: 30,
+                    backgroundColor: Colors.white,
+                    child: Icon(Icons.person, size: 40, color: Colors.blue),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Hola, $nombreUsuario',
+                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text('Editar Perfil'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => UpdateUserPage(token: widget.token),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Cerrar Sesión'),
+              onTap: () {
+                Navigator.pop(context);
+                logout();
+              },
+            ),
+          ],
         ),
-        backgroundColor: Colors.blue.shade700,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.person_outline, color: Colors.white), // Cambiado
-            tooltip: 'Editar perfil',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => UpdateUserPage(token: widget.token),
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.logout, color: Colors.white), // Cambiado
-            tooltip: 'Cerrar sesión',
-            onPressed: logout,
-          ),
-        ],
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
               child: Column(
                 children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(20),
-                      bottomRight: Radius.circular(20),
-                    ),
-                    child: Stack(
-                      children: [
-                        Container(
-                          width: double.infinity,
-                          height: 180,
-                          color: Colors.grey.shade300,
-                          child: Image.asset(
-                            'assets/ucem.png',
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const Center(
-                                    child: Icon(Icons.broken_image,
-                                        size: 80, color: Colors.grey)),
+                  Stack(
+                    children: [
+                      Container(
+                        width: double.infinity,
+                        height: 180,
+                        decoration: BoxDecoration(
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(20),
+                            bottomRight: Radius.circular(20),
+                          ),
+                          image: DecorationImage(
+                            image: const AssetImage('assets/ucem.png'),
+                            fit: BoxFit.contain,
+                            onError: (exception, stackTrace) =>
+                                const Icon(Icons.broken_image),
                           ),
                         ),
-                        Container(
-                          width: double.infinity,
-                          height: 180,
-                          decoration: BoxDecoration(
-                            borderRadius: const BorderRadius.only(
-                              bottomLeft: Radius.circular(20),
-                              bottomRight: Radius.circular(20),
-                            ),
-                            color: Colors.blue.shade700.withOpacity(0.35),
+                      ),
+                      Container(
+                        width: double.infinity,
+                        height: 180,
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade700.withOpacity(0.2),
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(20),
+                            bottomRight: Radius.circular(20),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      Positioned(
+                        left: 16,
+                        top: 16,
+                        child: Builder(
+                          builder: (context) => IconButton(
+                            icon: const Icon(Icons.menu, color: Colors.black),
+                            onPressed: () => Scaffold.of(context).openDrawer(),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: 16,
+                        bottom: 12,
+                        child: Text(
+                          'Bienvenido, $nombreUsuario',
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-
-                  // Barra de filtro por estado
                   _buildEstadoBar(),
-
-                  const SizedBox(height: 12),
-
+                  const SizedBox(height: 10),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: TextField(
                       decoration: InputDecoration(
                         prefixIcon: const Icon(Icons.search),
-                        hintText: 'Buscar por nombre o codigo...',
+                        hintText: 'Buscar por nombre o código...',
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
@@ -234,9 +270,7 @@ class _HomePageState extends State<HomePage> {
                       onChanged: filtrarMaterias,
                     ),
                   ),
-
                   const SizedBox(height: 10),
-
                   Expanded(
                     child: materiasFiltradas.isEmpty
                         ? const Center(
@@ -274,14 +308,13 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   trailing: Icon(Icons.arrow_forward_ios,
                                       size: 16, color: Colors.blue.shade700),
-                                  onTap: () {
-                                    Navigator.push(
+                                  onTap: () async {
+                                    Navigator.pop(context);
+                                    await Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => MateriaDetailPage(
-                                          id: materia['id'].toString(),
-                                          token: widget.token,
-                                        ),
+                                        builder: (_) =>
+                                            UpdateUserPage(token: widget.token),
                                       ),
                                     );
                                   },
