@@ -7,7 +7,6 @@ import 'login_page.dart';
 import 'package:app_cuartados/pages/edit_profile_page.dart';
 import 'package:app_cuartados/controllers/materia_estado_service.dart';
 import 'package:app_cuartados/controllers/materias_service.dart';
-import 'package:app_cuartados/pages/materia_details_page.dart';
 
 class HomePage extends StatefulWidget {
   final String token;
